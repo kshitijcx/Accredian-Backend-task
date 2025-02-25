@@ -1,12 +1,18 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
+import cors from "cors";
 
 const app = express();
 const prisma = new PrismaClient();
 
-const PORT = process.env.PORT || 8000;
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+app.use(express.json());
 
-async function main() {}
+const PORT = process.env.PORT || 8000;
 
 app.get("/", async (req: Request, res: Response) => {
   const data = req.body;
@@ -14,19 +20,16 @@ app.get("/", async (req: Request, res: Response) => {
   res.json(users);
 });
 
-app.post("/", async (req: Request, res: Response) => {
-  const data = await prisma.referal.create({
-    data: {
-      referrerName: "Ramesh",
-      referrerMail: "ramesh@gmail.com",
-      referrerAmt: 7000,
-      refereeName: "Suresh",
-      refereeMail: "suresh@gmail.com",
-      refereeAmt: 6000,
-      course: "Web Dev",
-    },
-  });
-  res.json("done");
+app.post("/refer", async (req: Request, res: Response) => {
+  const userData = req.body;
+  const formattedUserData = {
+    ...userData,
+    referrerAmt: Number(userData.referrerAmt),
+    refereeAmt: Number(userData.refereeAmt),
+  };
+  console.log(formattedUserData);
+  const insertedData = await prisma.referal.create({ data: formattedUserData });
+  res.json(insertedData);
 });
 
 app.listen(PORT, () => {
